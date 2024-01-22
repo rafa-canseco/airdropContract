@@ -29,15 +29,21 @@ contract newDistributor is Ownable {
         emit AirdropTokenRegistered(_airdropToken);
     }
 
-    function registerHolders(address[] calldata _holders) external onlyOwner {
+    function registerHolders(address[] calldata _holders) public onlyOwner {
         for (uint i = 0; i < _holders.length; i++) {
             if (!isHolder[_holders[i]]) {
                 isHolder[_holders[i]] = true;
                 holders.push(_holders[i]);
-                uint256 balance = tokenToTrack.balanceOf(_holders[i]);
-                uint256 totalSupply = tokenToTrack.totalSupply();
-                holderPercentages[_holders[i]] = (balance * 100) / totalSupply;
             }
+        }
+    }
+
+    function percentages() public onlyOwner {
+        uint256 totalSupply = tokenToTrack.totalSupply();
+        for (uint i = 0; i < holders.length; i++) {
+            address holder = holders[i];
+            uint256 balance = tokenToTrack.balanceOf(holder);
+            holderPercentages[holder] = (balance * 100) / totalSupply;
         }
     }
 
