@@ -12,7 +12,7 @@ const forkingData = FORK_FUJI
   ? {
       url: process.env.RPC_ENDPOINT_MAINNET || "",
       blockNumber: 
-      39682887,
+      40711444,
     }
   : undefined
 

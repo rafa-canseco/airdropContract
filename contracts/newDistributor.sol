@@ -54,6 +54,8 @@ contract newDistributor is Ownable {
             "there is no tokens of airdrop tokens on the contract"
         );
 
+        percentages();
+
         for (uint256 i = 0; i < holders.length; i++) {
             address holder = holders[i];
             uint256 holderPercentage = holderPercentages[holder];
@@ -69,17 +71,11 @@ contract newDistributor is Ownable {
         resetHolders();
     }
 
-    function withdrawToken(
-        IERC20 _token,
-        address _to,
-        uint256 _amount
-    ) public onlyOwner {
-        require(
-            _token.balanceOf(address(this)) >= _amount,
-            "Insufficient token balance in contract"
-        );
-        bool success = _token.transfer(_to, _amount);
-        require(success, "Token transfer failed");
+    function withdrawToken(IERC20 _token) public onlyOwner {
+        uint256 balance = _token.balanceOf(address(this));
+        require(balance > 0, "no token balance");
+        bool success = _token.transfer(owner(), balance);
+        require(success, "transfer tokens failed");
     }
 
     function emergencyWithdrawAvax() external onlyOwner {
@@ -97,4 +93,6 @@ contract newDistributor is Ownable {
         }
         delete holders;
     }
+
+        receive() external payable {}
 }
