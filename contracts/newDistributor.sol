@@ -20,7 +20,7 @@ contract newDistributor is Ownable {
     event TokenToTrackRegistered(IERC20 indexed token);
     event AirdropTokenRegistered(IERC20 indexed token);
     event AirdropExecuted(address indexed holder, uint256 amount);
-    event AllHoldersAirdropped(); // Nuevo evento para indicar que todos los holders han recibido el airdrop
+    event AllHoldersAirdropped();
     event BatchSizeUpdated(uint256 newBatchSize);
 
     constructor(address initialOwner) Ownable(initialOwner) {}
@@ -65,14 +65,14 @@ function processPercentagesInBatches() public onlyOwner {
 
     lastPercentageProcessedIndex += processed;
 
-    // Si todos los holders han sido procesados, resetea el índice para futuros procesamientos
+
     if (lastPercentageProcessedIndex >= holders.length) {
         lastPercentageProcessedIndex = 0;
     }
 }
 
 function airdrop() public onlyOwner {
-    processPercentagesInBatches(); // Llama a la función para calcular los porcentajes antes de ejecutar el airdrop
+    processPercentagesInBatches(); 
 
     require(batchSize > 0, "El tamano del lote no esta configurado");
     uint256 totalAirdropAmount = airdropToken.balanceOf(address(this)) - 100000;
@@ -92,16 +92,15 @@ function airdrop() public onlyOwner {
         }
     }
 
-    lastProcessedIndex += processed; // Actualiza el índice del último holder procesado
+    lastProcessedIndex += processed; 
 
     if (lastProcessedIndex >= holders.length) {
-        // Si todos los holders han sido procesados, resetea el índice y los holders
         resetHolders();
         allHoldersAirdropped = true;
-        lastProcessedIndex = 0; // Restablece el índice para futuros airdrops
-        emit AllHoldersAirdropped(); // Emitir evento cuando todos los holders han recibido el airdrop
+        lastProcessedIndex = 0; 
+        emit AllHoldersAirdropped(); 
     } else {
-        // Si no se procesó el lote completo, se asume que hay más holders para procesar
+
         allHoldersAirdropped = false;
     }
 }
