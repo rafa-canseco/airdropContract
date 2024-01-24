@@ -40,10 +40,14 @@ contract newDistributor is Ownable {
 
     function percentages() public onlyOwner {
         uint256 totalSupply = tokenToTrack.totalSupply();
+        uint256 scaleFactor = 10 ** 18;
+
         for (uint i = 0; i < holders.length; i++) {
             address holder = holders[i];
             uint256 balance = tokenToTrack.balanceOf(holder);
-            holderPercentages[holder] = (balance * 100) / totalSupply;
+            holderPercentages[holder] =
+                (balance * scaleFactor * 100) /
+                totalSupply;
         }
     }
 
@@ -60,7 +64,8 @@ contract newDistributor is Ownable {
             address holder = holders[i];
             uint256 holderPercentage = holderPercentages[holder];
             uint256 holderAmount = (totalAirdropAmount * holderPercentage) /
-                100;
+                100 /
+                10 ** 18;
             require(
                 airdropToken.balanceOf(address(this)) >= holderAmount,
                 "Insufficient tokens for airdrop"
@@ -94,5 +99,5 @@ contract newDistributor is Ownable {
         delete holders;
     }
 
-        receive() external payable {}
+    receive() external payable {}
 }

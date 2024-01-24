@@ -62,16 +62,19 @@ describe("newDistributor", function () {
             const address3 = "0x29fB012F31128eD9C4f4C7a8a7CE01bF6Fc641C4";
             const direcciones = [address1, address2, address3];
             await distributor.registerHolders(direcciones);
+            const scaleFactor = BigInt(10**18);
             for (const direccion of direcciones) {
                 const balance = await tokenToTrackContract.balanceOf(direccion);
                 const balanceBigInt = BigInt(balance.toString());
                 const totalSupplyBigInt = BigInt(totalSupply.toString());
-                porcentajesEsperados[direccion] = Number((balanceBigInt * BigInt(100)) / totalSupplyBigInt);
+                porcentajesEsperados[direccion] = (balanceBigInt * scaleFactor * BigInt(100)) / totalSupplyBigInt;
             }
+        
             await distributor.percentages();
+        
             for (const direccion of direcciones) {
                 const holderPercentage = await distributor.holderPercentages(direccion);
-                expect(BigInt(holderPercentage.toString())).to.equal(BigInt(porcentajesEsperados[direccion]));
+                expect(BigInt(holderPercentage)).to.equal(porcentajesEsperados[direccion]);
             }
         });
         it("should reset the holders adressess",async function () {
