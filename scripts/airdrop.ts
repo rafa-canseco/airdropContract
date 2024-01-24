@@ -10,7 +10,7 @@ function setUpProvider() {
     return {provider,wallet};
 }
 
-const contractAirdrop = "0x14d6c043729f4b571fa57Ed8Fb809f3F79Ef83eC"
+const contractAirdrop = "0x97905b665Da03513832881b4eFe3Ad93db56f017"
 
 async function airdrop() {
     const {provider,wallet} = setUpProvider();
@@ -22,9 +22,9 @@ async function airdrop() {
     const setHolders = await contract.registerHolders(addresses);
     const receipt = await setHolders.wait();
     console.log("tx holders:", receipt.hash);
-    const airdrop = await contract.airdrop()
-    const receiptAirdrop = await airdrop.wait();
-    console.log("tx airdrop:", receiptAirdrop.hash);
+    // const airdrop = await contract.airdrop()
+    // const receiptAirdrop = await airdrop.wait();
+    // console.log("tx airdrop:", receiptAirdrop.hash);
 }
 
 airdrop()
