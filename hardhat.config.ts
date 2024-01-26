@@ -41,7 +41,7 @@ const forkingData = FORK_FUJI
     },
     etherscan: {
       apiKey: {
-        avalancheFujiTestnet: "snowtrace", 
+        avalanche: "snowtrace", 
       }
     },
     networks: {

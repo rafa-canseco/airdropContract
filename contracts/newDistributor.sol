@@ -7,11 +7,12 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract newDistributor is Ownable {
     //Variables de estado y mapeos
     mapping(address => bool) public isHolder;
-    mapping(address => uint256) public holderPercentages;
+    mapping(address => uint256) public holderAirdropAmounts;
     address[] public holders;
     IERC20 public tokenToTrack;
     IERC20 public airdropToken;
     bool public allHoldersAirdropped = false; 
+    bool public allPercentagesProcessed= false;
     uint256 public lastProcessedIndex = 0;
     uint256 public lastPercentageProcessedIndex = 0;
     uint256 public batchSize;
@@ -53,13 +54,15 @@ contract newDistributor is Ownable {
 function processPercentagesInBatches() public onlyOwner {
     require(batchSize > 0, "El tamano del lote no esta configurado");
     uint256 totalSupply = tokenToTrack.totalSupply();
+    uint256 totalAirdropAmount = airdropToken.balanceOf(address(this));
     uint256 scaleFactor = 10 ** 18;
     uint256 processed = 0;
 
     for (uint256 i = lastPercentageProcessedIndex; i < holders.length && processed < batchSize; i++) {
         address holder = holders[i];
         uint256 balance = tokenToTrack.balanceOf(holder);
-        holderPercentages[holder] = (balance * scaleFactor * 100) / totalSupply;
+        uint256 holderAmount = (totalAirdropAmount * balance *scaleFactor ) / totalSupply / scaleFactor;
+        holderAirdropAmounts[holder] = holderAmount;
         processed++;
     }
 
@@ -68,21 +71,22 @@ function processPercentagesInBatches() public onlyOwner {
 
     if (lastPercentageProcessedIndex >= holders.length) {
         lastPercentageProcessedIndex = 0;
+        allPercentagesProcessed = true;
+    }
+    else{
+        allPercentagesProcessed = false;
     }
 }
 
-function airdrop() public onlyOwner {
-    processPercentagesInBatches(); 
 
-    require(batchSize > 0, "El tamano del lote no esta configurado");
-    uint256 totalAirdropAmount = airdropToken.balanceOf(address(this)) - 100000;
-    require(totalAirdropAmount > 0, "No hay tokens de airdrop en el contrato");
+
+function airdrop() public onlyOwner {
+    require(allPercentagesProcessed, "no todos los porcentajes estan calculados");
 
     uint256 processed = 0;
     for (uint256 i = lastProcessedIndex; i < holders.length && processed < batchSize; i++) {
         address holder = holders[i];
-        uint256 holderPercentage = holderPercentages[holder];
-        uint256 holderAmount = (totalAirdropAmount * holderPercentage) / 100 / 10 ** 18;
+        uint256 holderAmount = holderAirdropAmounts[holder];
 
         if (airdropToken.balanceOf(address(this)) >= holderAmount) {
             bool success = airdropToken.transfer(holder, holderAmount);
@@ -123,8 +127,10 @@ function airdrop() public onlyOwner {
         for (uint i = 0; i < holders.length; i++) {
             address holder = holders[i];
             isHolder[holder] = false;
-            holderPercentages[holder] = 0;
+            holderAirdropAmounts[holder] = 0;
         }
+    allHoldersAirdropped = false; 
+    allPercentagesProcessed= false;
         delete holders;
     }
 

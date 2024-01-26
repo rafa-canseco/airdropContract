@@ -5,12 +5,12 @@ const hre = require("hardhat")
 dotenv.config()
 
 function setUpProvider() {
-    const provider = new ethers.JsonRpcProvider(process.env.RPC_ENDPOINT_TESTNET ?? "");
-    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY_TESTNET ?? "", provider);
+    const provider = new ethers.JsonRpcProvider(process.env.RPC_ENDPOINT_MAINNET ?? "");
+    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY_ANDRES ?? "", provider);
     return {provider,wallet};
 }
 
-const contractAirdrop = "0x97905b665Da03513832881b4eFe3Ad93db56f017"
+const contractAirdrop = "0x83Be1e0F948B85bAaDC144B4a2aB16ba6acabd07"
 
 async function airdrop() {
     const {provider,wallet} = setUpProvider();
@@ -22,9 +22,7 @@ async function airdrop() {
     const setHolders = await contract.registerHolders(addresses);
     const receipt = await setHolders.wait();
     console.log("tx holders:", receipt.hash);
-    // const airdrop = await contract.airdrop()
-    // const receiptAirdrop = await airdrop.wait();
-    // console.log("tx airdrop:", receiptAirdrop.hash);
+
 }
 
 airdrop()

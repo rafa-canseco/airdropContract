@@ -51,23 +51,36 @@ describe("newDistributor", function () {
         });
         it("debería calcular los porcentajes de los tenedores correctamente y asegurar que no sean 0", async function() {
             const tokenTrackable = "0x1785d6F5B076d93EfAE079744D0c86F2aC77621f";
+            const airdropToken = "0x4F94b8AEF08c92fEfe416af073F1Df1E284438EC"
+            const distributorAddress = await distributor.getAddress()
+            const tokenContract = await ethers.getContractAt("IERC20", tokenTrackable);
+            addressImpersonator = "0xD5AFAcFE7061042695e67210E2C347163683e30c";
+            await network.provider.request({
+                method: "hardhat_impersonateAccount",
+                params: [addressImpersonator]
+            });
+            const amount = ethers.parseUnits("1000000",18)
+            const signer = await ethers.provider.getSigner(addressImpersonator)
+            await tokenContract.connect(signer).transfer(distributorAddress,amount)
+            await distributor.registerAirdropToken(airdropToken)
             await distributor.registerTokenToTrack(tokenTrackable);
             const tokenToTrackContract = await ethers.getContractAt("IERC20", tokenTrackable);
             const totalSupply = await tokenToTrackContract.totalSupply();
-            const porcentajesEsperados = {};
+            const tokenToAirdropContract = await ethers.getContractAt("IERC20", airdropToken);
+            const totalAirdropAmount = await tokenToAirdropContract.balanceOf(distributorAddress) ;
+            const cantidadesEsperadas = {};
             const direcciones = await fetchHolders();
             await distributor.registerHolders(direcciones);
             const scaleFactor = BigInt(10**18);
-            let sumaPorcentajes = BigInt(0);
+            let sumaCantidades = BigInt(0);
             for (const direccion of direcciones) {
                 const balance = await tokenToTrackContract.balanceOf(direccion);
                 const balanceBigInt = BigInt(balance.toString());
                 const totalSupplyBigInt = BigInt(totalSupply.toString());
-                const porcentaje = (balanceBigInt * scaleFactor * BigInt(100)) / totalSupplyBigInt;
-                porcentajesEsperados[direccion] = porcentaje;
-                sumaPorcentajes += porcentaje;
+                const cantidad = (totalAirdropAmount * balanceBigInt) / totalSupplyBigInt;
+                cantidadesEsperadas[direccion] = cantidad;
+                sumaCantidades += cantidad;
             }
-            expect(sumaPorcentajes).to.be.greaterThan(BigInt(0), "La suma de porcentajes no puede ser 0");
     
             // Establecer el tamaño del lote antes de procesar los porcentajes
             const batchSize = 50; // Asumiendo que quieres procesar 50 direcciones a la vez
@@ -79,11 +92,10 @@ describe("newDistributor", function () {
                 await distributor.processPercentagesInBatches();
                 totalHoldersProcessed += batchSize;
             }
-    
             // Verificar que los porcentajes calculados en el contrato coincidan con los esperados
             for (const direccion of direcciones) {
-                const holderPercentage = await distributor.holderPercentages(direccion);
-                expect(BigInt(holderPercentage)).to.equal(porcentajesEsperados[direccion]);
+                const holderAmount = await distributor.holderAirdropAmounts(direccion);
+                expect(BigInt(holderAmount)).to.equal(cantidadesEsperadas[direccion]);
             }
         });
         
@@ -162,15 +174,19 @@ describe("newDistributor", function () {
             // llamar al airdrop
             const batchSize = 70; // Define el tamaño del lote aquí
             await distributor.setBatchSize(batchSize);
-            const balanceBefore = await tokenContract.balanceOf(distributorAddress)
-            await distributor.airdrop()
-            const balanceAfter = await tokenContract.balanceOf(distributorAddress)
-            expect(balanceAfter).to.be.below(balanceBefore);
             let totalHoldersProcessed = 0;
             while (totalHoldersProcessed < direcciones.length) {
-                await distributor.airdrop();
+                await distributor.processPercentagesInBatches();
                 totalHoldersProcessed += batchSize;
             }
+            const balanceBefore = await tokenContract.balanceOf(distributorAddress)
+            let allHoldersAirdropped = false;
+            while (!allHoldersAirdropped) {
+                await distributor.airdrop();
+                allHoldersAirdropped = await distributor.allHoldersAirdropped(); // Verifica si todos los holders han recibido el airdrop
+            }
+            const balanceAfter = await tokenContract.balanceOf(distributorAddress)
+            expect(balanceAfter).to.be.below(balanceBefore);
 
             // Verificar que cada dirección tenga más del token de airdrop después del airdrop
             let direccionesSinTokens = 0;
@@ -178,7 +194,7 @@ describe("newDistributor", function () {
             let direccionesSinTokensList = [];
             for (const direccion of direcciones) {
                 const balance = await tokenContract.balanceOf(direccion);
-                if (balance === BigInt(0)) {
+                if (BigInt(balance.toString()) === BigInt(0)) { // Asegúrate de convertir el balance a BigInt para la comparación
                     direccionesSinTokens++;
                     direccionesSinTokensList.push(direccion);
                 } else {
