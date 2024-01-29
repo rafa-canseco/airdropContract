@@ -5,11 +5,12 @@ const PARAMS=
 "ecosystem=avalanche&includedChainIds=43114%2C73772&direction=sent&count=true&limit=100";
 const MIN_BALANCE = 20000000000000000000000000000;
 
-export async function fetchHolders(){
+export async function fetchHolders_testing(){
     let nextToken = ""
     let retries = 0;
     const MAX_RETRIES = 5;
     let addresses = [];
+    let totalCount = 0;
 
     while(true){
         try{
@@ -30,6 +31,7 @@ export async function fetchHolders(){
                     holder.address !== "0xf77414Cb7D5Da12B56517c4cB83e78A70CbCbC33" &&
                     holder.address !== "0x6FB0E3f87f1F0549dE65Cd35Ac8DD3922fC1910E") {
                     addresses.push(holder.address);
+                    totalCount++;
                 }
             });
 
@@ -38,7 +40,7 @@ export async function fetchHolders(){
                 retries = 0;
             } else {
                 console.log("Se han buscado todos los addresses");
-                console.log(`Total de addresses encontrados: ${addresses.length}`);
+                console.log(`Total de addresses encontrados: ${totalCount}`);
                 break;
             }
         } catch (error) {
@@ -51,5 +53,5 @@ export async function fetchHolders(){
             await new Promise((resolve) => setTimeout(resolve, 10000));
         }
     }
-    return addresses;
+    return { addresses, totalCount };
 }

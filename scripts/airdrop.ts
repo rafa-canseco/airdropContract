@@ -10,7 +10,7 @@ function setUpProvider() {
     return {provider,wallet};
 }
 
-const contractAirdrop = "0x83Be1e0F948B85bAaDC144B4a2aB16ba6acabd07"
+const contractAirdrop = "0x33578637570E09C52B463976d893524E75c53d4e"
 
 async function airdrop() {
     const {provider,wallet} = setUpProvider();

@@ -5,13 +5,13 @@ const hre = require("hardhat")
 dotenv.config()
 
 function setUpProvider () {
-    const provider = new ethers.JsonRpcProvider(process.env.RPC_ENDPOINT_MAINNET ?? "");
+    const provider = new ethers.JsonRpcProvider(process.env.RPC_ENDPOINT_TESTNET ?? "");
     return provider
 }
 
 async function main() {
     const provider = setUpProvider()
-    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY_ANDRES ?? "", provider)
+    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY_TESTNET ?? "", provider)
     console.log("Deploying Contract")
     const walletAddress = await wallet.getAddress();
 
