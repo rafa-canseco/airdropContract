@@ -1,15 +1,7 @@
-# newdistributor
+## 
 
-To install dependencies:
+### 
+total of addresses to include at scripts/getAddresses.ts
 
-```bash
-bun install
-```
 
-To run:
-
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.0.21. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+run airdrop with bun scripts/airdrop.ts

@@ -3,7 +3,7 @@ import axios from "axios";
 const BASE_URL = "https://api.routescan.io/v2/network/mainnet/evm/43114/erc20/0x1785d6F5B076d93EfAE079744D0c86F2aC77621f/holders"
 const PARAMS= 
 "ecosystem=avalanche&includedChainIds=43114%2C73772&direction=sent&count=true&limit=100";
-const MIN_BALANCE = 20000000000000000000000000000;
+const MIN_BALANCE = 20000000000000000000000000000; // min balance con 18 decimales
 
 export async function fetchHolders(){
     let nextToken = ""
